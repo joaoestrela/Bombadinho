@@ -1,0 +1,16 @@
+
+ast.o
+
+interpreter
+
+interpreter.o
+
+parser.h
+
+parser.o
+
+scanner.c
+
+parser.c
+
+scanner.o
