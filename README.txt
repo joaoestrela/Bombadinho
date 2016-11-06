@@ -10,12 +10,11 @@
 Bombadinho is a Mathlab/GNU Octave Syntax Analyser (for now...)
 
 Syntax Analyser files included:
-ast.c
-ast.h
-interpreter.c
-Makefile
-parser.bison
-scanner.flex
+   - scanner.flex : the lexical analyser (scanner) in flex
+   - parser.bison: the parser in bison
+   - ast.h, ast.c: AST declarations & constructor implementations
+   - interpreter.c: the interpreter routines including main
+   - Makefile: makefile to build the interpreter.
 
 There are a few mathlab-examples included aswell so you can test that Bombadinho actually does what he says he does !
 
