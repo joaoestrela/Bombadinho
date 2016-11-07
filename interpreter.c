@@ -1,63 +1,109 @@
 #include <stdio.h>
 #include "parser.h"
 
-//evaluation of an expression
-int eval(Expr* expr) {
-  int result = 0;
-  if (expr == 0) {
-    yyerror("Null expression!!");
-  }
-  else if (expr->kind == E_INTEGER) {
-    result = expr->attr.value;
-  }
-  else if (expr->kind == E_OPERATION) {
-    int vLeft = eval(expr->attr.op.left);
-    int vRight = eval(expr->attr.op.right);
-    switch (expr->attr.op.operator) {
-      case PLUS:
-        result = vLeft + vRight;
-        break;
-      case MINUS:
-        result = vLeft - vRight;
-        break;
-      case MUL:
-        result = vLeft * vRight;
-        break;
-      case DIV:
-        result = vLeft / vRight;
-        break;
-      case MOD:
-        result = vLeft % vRight;
-        break;
-      case EQ:
-        if(vLeft == vRight) result = 1;
-        else result = 0;
-        break;
-      case GE:
-        if(vLeft >= vRight) result = 1;
-        else result = 0;
-        break;
-      case GT:
-        if(vLeft > vRight) result = 1;
-        else result = 0;
-        break;
-      case LE:
-        if(vLeft <= vRight) result = 1;
-        else result = 0;
-        break;
-      case LT:
-        if(vLeft < vRight) result = 1;
-        else result = 0;
-      case NE:
-        if(vLeft != vRight) result = 1;
-        else result = 0;
-        break;
-      default: yyerror("Unknown operator!");
+void print_command(Cmd* command);
+void print_expr(Expr* expr);
+
+void print_tree(CmdList* l){
+  if(l!=NULL){
+    print_command(l->cmd);
+    if(l->next !=NULL){
+      printf("\n");
+      print_tree(l->next);
+    }
+    else{
+      return;
     }
   }
-  return result;
+  else{
+    printf("NULL");
+    return;
+  }
 }
 
+void print_expr(Expr* expr){
+  printf("Expr(");
+  switch(expr->kind){
+  case E_INTEGER: printf("Int(%d)", expr->attr.value); break;
+  case E_OPERATION:print_expr(expr->attr.op.left); printf("(");
+    switch(expr->attr.op.operator){
+    case PLUS: printf("PLUS)");
+      break;
+    case MINUS: printf("MINUS)");
+      break;
+    case MUL: printf("MUL)");
+      break;
+    case DIV: printf("DIV)");
+      break;
+    case MOD: printf("MOD)");
+      break;
+    case GT: printf(">)");
+      break;
+    case GE: printf(">=)");
+      break;
+    case LT: printf("<)");
+      break;
+    case LE: printf("<=)");
+      break;
+    case NE: printf("~=)");
+      break;
+    case EQ: printf("==)");
+      break;
+    default:
+      break;
+    }
+    print_expr(expr->attr.op.right);
+    break;
+  default: printf("Var(%s)",expr->attr.name);
+  }
+  printf(")");
+}
+
+void print_command(Cmd* c){
+  switch(c->kind){
+  case C_IF:printf("IF(");
+    print_expr(c->attr.ifs.expr);
+    print_tree(c->attr.ifs.next); printf(")");
+    break;
+
+  case C_ELSEIF: printf("ELSEIF(");
+    print_expr(c->attr.elseifs.expr);
+    print_tree(c->attr.elseifs.next); printf(")");
+    break;
+
+  case C_ELSE: printf("ELSE(");
+    print_tree(c->attr.elses.next); printf(")");
+    break;
+
+  case C_WHILE: printf("WHILE(");
+    print_expr(c->attr.whiles.expr);
+    print_tree(c->attr.whiles.next); printf(")");
+    break;
+
+  case C_FOR: printf("FOR(");
+    print_command(c->attr.fors.cmd);
+    print_expr(c->attr.fors.expr);
+    print_tree(c->attr.fors.next);
+    printf(")");
+    break;
+
+  case C_OUT: printf("OUTPUT(");
+    print_expr(c->attr.out.expr);
+    printf(")");
+    break;
+
+  case C_IN: printf("INPUT(Var(%s)", c->attr.in.name);
+    printf(")");
+    break;
+
+  case C_ATR: printf("ATTRIBUTION(Var(%s)", c->attr.atrib.var);
+    print_expr(c-> attr.atrib.expr);
+    break;
+
+  default:
+    printf(")\n");
+  }
+}
 
 int main(int argc, char** argv) {
   --argc; ++argv;
@@ -67,14 +113,10 @@ int main(int argc, char** argv) {
       printf("'%s': could not open file\n", *argv);
       return 1;
     }
-  } //  yyin = stdin
+  }
   if (yyparse() == 0) {
-    while(root != NULL){
-      //printf("Result = %d\n", eval(root->expr));
-      root = root->next;
-    }
+    print_tree(root);
+    printf("\n");
   }
   return 0;
-
-
 }
